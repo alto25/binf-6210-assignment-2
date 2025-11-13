@@ -37,7 +37,7 @@ install.packages("janitor")
 getwd()
 # setting my working directory
 setwd("C:/Users/marya/OneDrive/Dokumenty/Masters/binf_6210/Assignment_01/data")
-setwd("C:/Users/marya/OneDrive/Dokumenty/Masters/binf_6210/Assignment_01/R_script")
+
 
 #****ASHLEY INSERT
 setwd("C:/Users/isagi/Downloads/BINF6210/BINFAssignment2")
@@ -107,6 +107,12 @@ dfAvgLat <- aggregate(x = dfBOLDAc$lat, by = list(`country/ocean` = dfBOLDAc$`co
 # Question 1:
 # Determining the ecological of distribution of barcoded BINs on a global scale
 
+#Ashley Insert
+df_freq <- dfBOLDAc %>%
+  count(long, lat, name = "freq")
+
+dfBOLDAc <- dfBOLDAc %>% filter(!is.na(long) & !is.na(lat))
+
 # Now that I have all my prileminary data, I can plot a map of the global distribution of all the barcoded Actias BINs, using the longitudinal and latitudinal values
 world_map <- map_data("world")
 # Plotting the Global distribution of barcoded Actias spp.
@@ -125,6 +131,7 @@ ggplot(data = dfBOLDAc) +
     x = "Longitude", y = "Latitude"
   ) +
   theme_minimal()
+
 
 # Based on the map produced,it's clear that Actias BINs have been barcoded from North America all the way to East Asia. Though it seems like there is a greater amount of BINs in East Asia, suggesting that the area is richer is ecological diversity and variation. I'm going to zoom in on these particular areas of interest to see how different the frequencies are.
 
@@ -192,6 +199,43 @@ ggplot(top10, aes(x = reorder(`country.ocean`, n), y = n, fill = n)) +
     y = "Number of Records"
   ) +
   theme_minimal()
+
+#Ashley insert-  visualizing top 10 sites on world map
+
+world_centroids <- map_data("world") %>%
+  group_by(region) %>%
+  summarize(
+    long = mean(long),
+    lat = mean(lat)
+  )
+
+top10_coords <- top10 %>%
+  left_join(world_centroids, by = c("country.ocean" = "region"))
+
+ggplot() +
+  # Draw the world map
+  geom_polygon(
+    data = map_data("world"),
+    aes(x = long, y = lat, group = group),
+    fill = "gray90",
+    color = "gray60"
+  ) +
+  geom_point(
+    data = top10_coords,
+    aes(x = long, y = lat, size = n, color = n),
+    alpha = 0.8
+  ) +
+  scale_size_continuous(range = c(3, 10), name = "Number of BINs") +
+  scale_color_viridis_c(option = "viridis", name = "Number of BINs") +
+  labs(
+    title = "Top 10 Countries with Most Actias spp. BINs",
+    x = "Longitude",
+    y = "Latitude"
+  ) +
+  coord_fixed(1.3) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
 
 # Based on the graphs produced, China has the most barcoded BINs in the data set, showing that the region is highly diverse. But what makes this country the most diverse in barcoded species, it could be due to multiple reasons. Firstly there could be sampling bias, meaning there are some regions that have an Actias spp. that simply hasn't been barcoded due to lack of interest from researchers.
 
